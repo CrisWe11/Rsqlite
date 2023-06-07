@@ -6,8 +6,10 @@ Some goals in the roadmap is heavily inspired by the [CodeCrafters](https://app.
 The goal here is not to simply go through every quiz provided by others but to actually implement a sqlite that's usable on my own. So I started this project.
 
 In the current stage, I will only implement some basic functionalities. The second and following stage is for more *advanced* stuff. So notice, code in this project is subject to radical changes.
+
+
 ## Stage1 Roadmap
-- [ ] Implement the `Rsqlite3 sample.db .Dbinfo` command.
+- [ ] Implement the `Rsqlite3 sample.db .Dbinfo` command. (Almost done 2023-06-08)
 - [ ] Implement the `Rsqlite3 sample.db .tables` command.
 - [ ] Support `SELECT`.
   - [ ] Support `SELECT` one column.
@@ -16,4 +18,6 @@ In the current stage, I will only implement some basic functionalities. The seco
 - [ ] Support retrieving data using an index.
 
 ...
+
+
 
