@@ -7,7 +7,7 @@ The goal here is not to simply go through every quiz provided by others but to a
 
 In the current stage, I will only implement some basic functionalities. The second and following stage is for more *advanced* stuff. So notice, code in this project is subject to radical changes.
 ## Stage1 Roadmap
-- [ ] Implement the `Rsqlite3 sample.db .dbinfo` command.
+- [ ] Implement the `Rsqlite3 sample.db .Dbinfo` command.
 - [ ] Implement the `Rsqlite3 sample.db .tables` command.
 - [ ] Support `SELECT`.
   - [ ] Support `SELECT` one column.
