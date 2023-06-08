@@ -155,6 +155,7 @@ impl<'b> Display for DBHeader<'b> {
         writeln!(f, "text encoding: {}",self.db_text_encoding)?;
         writeln!(f, "user version: {}",self.user_version)?;
         writeln!(f, "application id: {}",self.application_id)?;
+        writeln!(f, "software version: {}",self.sqlite_version_number)?;
         Ok(())
     }
 }
