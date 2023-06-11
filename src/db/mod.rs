@@ -17,12 +17,6 @@ use crate::rb;
 //     },
 // }
 //
-// enum BTreePageType {
-//     InteriorIndexBTreePage,
-//     InteriorTableBTreePage,
-//     LeafIndexBTreePage,
-//     LeafTableBTreePage,
-// }
 //
 // impl TryFrom<u8> for BTreePageType {
 //     type Error = &'static str;
@@ -45,14 +39,6 @@ use crate::rb;
 //     StartOfPage(u16),
 // }
 //
-// struct BTreePageHeader {
-//     page_type: BTreePageType,
-//     freeblock_offset: Option<Offset>,
-//     number_of_cells: u16,
-//     start_of_the_content_area: Offset,
-//     fragmented_bytes: u8,
-//     right_most_pointer: Option<Offset>,
-// }
 //
 // impl TryFrom<&[u8]> for BTreePageHeader {
 //     type Error = &'static str;
@@ -85,77 +71,93 @@ use crate::rb;
 //
 pub struct DBHeader<'b> {
     buffer: &'b [u8; 100],
-    page_size: u16,
-    file_format_write_version: u8,
-    file_format_read_version: u8,
-    reserved_space_size: u8,
-    maximum_embedded_payload_fraction: u8,
-    minimum_embedded_payload_fraction: u8,
-    leaf_payload_fraction: u8,
-    file_change_counter: u32,
-    in_header_database_size: u32,
-    first_freelist_trunk_page: u32,
-    total_number_of_freelist_pages: u32,
-    schema_cookie: u32,
-    schema_format: u32,
-    default_page_cache_size: u32,
-    largest_root_btree_page: u32,
-    db_text_encoding: u32,
-    user_version: u32,
-    incremental_vacuum_mode: u32,
-    application_id: u32,
-    reserved_space: &'b [u8],
-    version_valid_for: u32,
-    sqlite_version_number: u32,
+    page_size: &'b [u8;2],
+    file_format_write_version: &'b u8,
+    file_format_read_version: &'b u8,
+    reserved_space_size: &'b u8,
+    maximum_embedded_payload_fraction: &'b u8,
+    minimum_embedded_payload_fraction: &'b u8,
+    leaf_payload_fraction: &'b u8,
+    file_change_counter: &'b [u8;4],
+    in_header_database_size: &'b [u8;4],
+    first_freelist_trunk_page: &'b [u8;4],
+    total_number_of_freelist_pages: &'b [u8;4],
+    schema_cookie: &'b [u8;4],
+    schema_format: &'b [u8;4],
+    default_page_cache_size: &'b [u8;4],
+    largest_root_btree_page: &'b [u8;4],
+    db_text_encoding: &'b [u8;4],
+    user_version: &'b [u8;4],
+    incremental_vacuum_mode: &'b [u8;4],
+    application_id: &'b [u8;4],
+    reserved_space: &'b [u8;20],
+    version_valid_for: &'b [u8;4],
+    sqlite_version_number: &'b [u8;4],
 }
 
 impl<'b> From<&'b [u8; 100]> for DBHeader<'b> {
     fn from(value: &'b [u8; 100]) -> Self {
         DBHeader {
             buffer: value,
-            page_size: rb!(u16, value[16]),
-            file_format_write_version: value[18],
-            file_format_read_version: value[19],
-            reserved_space_size: value[20],
-            maximum_embedded_payload_fraction: value[21],
-            minimum_embedded_payload_fraction: value[22],
-            leaf_payload_fraction: value[23],
-            file_change_counter: rb!(u32, value[24]),
-            in_header_database_size: rb!(u32, value[28]),
-            first_freelist_trunk_page: rb!(u32, value[32]),
-            total_number_of_freelist_pages: rb!(u32, value[36]),
-            schema_cookie: rb!(u32, value[40]),
-            schema_format: rb!(u32, value[44]),
-            default_page_cache_size: rb!(u32, value[48]),
-            largest_root_btree_page: rb!(u32, value[52]),
-            db_text_encoding: rb!(u32, value[56]),
-            user_version: rb!(u32, value[60]),
-            incremental_vacuum_mode: rb!(u32, value[64]),
-            application_id: rb!(u32, value[68]),
-            reserved_space: &value[72..92],
-            version_valid_for: rb!(u32, value[92]),
-            sqlite_version_number: rb!(u32, value[96]),
+            page_size: value[16..18].try_into().unwrap(),
+            file_format_write_version: &value[18],
+            file_format_read_version: &value[19],
+            reserved_space_size: &value[20],
+            maximum_embedded_payload_fraction: &value[21],
+            minimum_embedded_payload_fraction: &value[22],
+            leaf_payload_fraction: &value[23],
+            file_change_counter: value[24..28].try_into().unwrap(),
+            in_header_database_size: value[28..32].try_into().unwrap(),
+            first_freelist_trunk_page: value[32..36].try_into().unwrap(),
+            total_number_of_freelist_pages: value[36..40].try_into().unwrap(),
+            schema_cookie: value[40..44].try_into().unwrap(),
+            schema_format: value[44..48].try_into().unwrap(),
+            default_page_cache_size: value[48..52].try_into().unwrap(),
+            largest_root_btree_page: value[52..56].try_into().unwrap(),
+            db_text_encoding: value[56..60].try_into().unwrap(),
+            user_version: value[60..64].try_into().unwrap(),
+            incremental_vacuum_mode: value[64..68].try_into().unwrap(),
+            application_id: value[68..72].try_into().unwrap(),
+            reserved_space: value[72..92].try_into().unwrap(),
+            version_valid_for: value[92..96].try_into().unwrap(),
+            sqlite_version_number: value[96..100].try_into().unwrap(),
         }
     }
 }
 impl<'b> Display for DBHeader<'b> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "database page size: {}",self.page_size)?;
-        writeln!(f, "write format: {}",self.file_format_write_version)?;
-        writeln!(f, "read format: {}",self.file_format_read_version)?;
-        writeln!(f, "reserved bytes: {}",self.reserved_space_size)?;
-        writeln!(f, "file change counter: {}",self.file_change_counter)?;
-        writeln!(f, "database page count: {}",self.in_header_database_size)?;
-        writeln!(f, "freelist page count: {}",self.total_number_of_freelist_pages)?;
-        writeln!(f, "schema cookie: {}",self.schema_cookie)?;
-        writeln!(f, "schema format: {}",self.schema_format)?;
-        writeln!(f, "default cache size: {}",self.default_page_cache_size)?;
-        writeln!(f, "autovacuum top root: {}",self.largest_root_btree_page)?;
-        writeln!(f, "incremental vacuum: {}",self.incremental_vacuum_mode)?;
-        writeln!(f, "text encoding: {}",self.db_text_encoding)?;
-        writeln!(f, "user version: {}",self.user_version)?;
-        writeln!(f, "application id: {}",self.application_id)?;
-        writeln!(f, "software version: {}",self.sqlite_version_number)?;
+        writeln!(f, "database page size:    {}",u16::from_be_bytes(*self.page_size))?;
+        writeln!(f, "write format:          {}",self.file_format_write_version)?;
+        writeln!(f, "read format:           {}",self.file_format_read_version)?;
+        writeln!(f, "reserved bytes:        {}",self.reserved_space_size)?;
+        writeln!(f, "file change counter:   {}",u32::from_be_bytes(*self.file_change_counter))?;
+        writeln!(f, "database page count:   {}",u32::from_be_bytes(*self.in_header_database_size))?;
+        writeln!(f, "freelist page count:   {}",u32::from_be_bytes(*self.total_number_of_freelist_pages))?;
+        writeln!(f, "schema cookie:         {}",u32::from_be_bytes(*self.schema_cookie))?;
+        writeln!(f, "schema format:         {}",u32::from_be_bytes(*self.schema_format))?;
+        writeln!(f, "default cache size:    {}",u32::from_be_bytes(*self.default_page_cache_size))?;
+        writeln!(f, "autovacuum top root:   {}",u32::from_be_bytes(*self.largest_root_btree_page))?;
+        writeln!(f, "incremental vacuum:    {}",u32::from_be_bytes(*self.incremental_vacuum_mode))?;
+        writeln!(f, "text encoding:         {}",u32::from_be_bytes(*self.db_text_encoding))?;
+        writeln!(f, "user version:          {}",u32::from_be_bytes(*self.user_version))?;
+        writeln!(f, "application id:        {}",u32::from_be_bytes(*self.application_id))?;
+        writeln!(f, "software version:      {}",u32::from_be_bytes(*self.sqlite_version_number))?;
         Ok(())
     }
 }
+
+enum BTreePageType {
+    InteriorIndexBTreePage,
+    InteriorTableBTreePage,
+    LeafIndexBTreePage,
+    LeafTableBTreePage,
+}
+
+// struct BTreePageHeader {
+//     page_type: BTreePageType,
+//     freeblock_offset: Option<Offset>,
+//     number_of_cells: u16,
+//     start_of_the_content_area: Offset,
+//     fragmented_bytes: u8,
+//     right_most_pointer: Option<Offset>,
+// }

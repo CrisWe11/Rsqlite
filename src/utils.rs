@@ -34,3 +34,9 @@ macro_rules! rb {
         u64::from_be_bytes([$arr[$idx], $arr[$idx + 1], $arr[$idx + 2], $arr[$idx + 3], $arr[$idx + 4], $arr[$idx + 5], $arr[$idx + 6], $arr[$idx + 7]])
     };
 }
+
+#[macro_export]
+macro_rules! pb {
+    ($arr: tt) => {
+    }
+}
