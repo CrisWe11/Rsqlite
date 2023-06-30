@@ -1,17 +1,27 @@
-pub fn read_var_int(buffer: &[u8]) -> (i64, usize) {
+use std::io::{Cursor, Read, Seek, SeekFrom};
+
+pub fn read_varint(buffer: &mut Cursor<&[u8]>) -> Result<i64, String> {
     let mut len = 0;
     let mut shift: usize = 0;
     let mut output: i64 = 0;
-    for &byte in buffer {
+    let mut byte = [0u8];
+    let mut finished = false;
+    while let Ok(_) = buffer.read_exact(&mut byte) {
+        let b = byte[0];
         output <<= shift;
-        output |= (byte & 0b01111111) as i64;
+        output |= (b & 0b01111111) as i64;
         shift += 7;
         len += 1;
-        if len == 9 || byte & 0b10000000 == 0 {
+        if len == 9 || (b & 0b10000000) >> 7 == 0 {
+            finished = true;
             break;
         }
     }
-    (output, len)
+    if !finished {
+        Err(String::from("Unfinished varint reading"))
+    }else{
+        Ok(output)
+    }
 }
 
 pub fn pn(page_size: usize) -> impl Fn(usize, usize) -> usize {

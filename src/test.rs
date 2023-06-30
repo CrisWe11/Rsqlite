@@ -1,17 +1,11 @@
-use crate::utils::read_var_int;
+use std::io::Cursor;
+use crate::utils::read_varint;
 use super::*;
 
 #[test]
-#[ignore]
 fn test_read_varint() {
-    assert_eq!(read_var_int(&[0b11000101, 0b01000011, 3]), (8899, 2))
+    let buffer = [0b11000101u8, 0b11000011u8];
+    let b = &buffer[..];
+    let mut c = Cursor::new(b);
+    assert_eq!(read_varint(&mut c).unwrap(), 8899)
 }
-
-#[test]
-fn macro_test() {
-    let arr:&[u8] = &[0,1,2,3,4,5,6,7,8,9,10];
-    println!("{}", rb!(u64, arr[1]))
-}
-
-
-

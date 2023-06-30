@@ -8,6 +8,7 @@ use crate::db::DBHeader;
 mod utils;
 mod test;
 mod db;
+mod b_tree;
 
 #[derive(Clone, Debug)]
 enum ArgOption {

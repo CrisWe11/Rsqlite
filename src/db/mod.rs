@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use crate::rb;
+
 //
 // struct FreelistTrunkPage {}
 //
@@ -69,30 +70,75 @@ use crate::rb;
 //     }
 // }
 //
+// enum Cell<'b> {
+//     TableLeafCell{},
+//     TableInteriorCell,
+//     IndexLeafCell,
+//     IndexInteriorCell,
+// }
+
+pub struct BTreePageHeader<'b> {
+    buffer: &'b [u8],
+}
+
+// pub struct BTreePage<'b> {
+//     page_type: BTreePageType,
+//     buffer: &'b [u8],
+//     db_header: Option<DBHeader<'b>>,
+//     page_header: BTreePageHeader<'b>,
+//     cells: Vec<Cell<'b>>,
+// }
+
+
+enum FreelistPageType {
+    FreelistTrunkPage,
+    FreelistLeafPage,
+}
+
+enum BTreePageType {
+    InteriorIndexBTreePage,
+    InteriorTableBTreePage,
+    LeafIndexBTreePage,
+    LeafTableBTreePage,
+}
+
+enum PageType {
+    LockBytePage,
+    FreelistPage(FreelistPageType),
+    BTreePage(BTreePageType),
+    PayloadOverflowPage,
+    PointerMapPage,
+}
+
+pub struct PagerConfig {
+    pub page_size: u16,
+    pub reserved_space_size: u8,
+}
+
 pub struct DBHeader<'b> {
     buffer: &'b [u8; 100],
-    page_size: &'b [u8;2],
+    page_size: &'b [u8; 2],
     file_format_write_version: &'b u8,
     file_format_read_version: &'b u8,
     reserved_space_size: &'b u8,
     maximum_embedded_payload_fraction: &'b u8,
     minimum_embedded_payload_fraction: &'b u8,
     leaf_payload_fraction: &'b u8,
-    file_change_counter: &'b [u8;4],
-    in_header_database_size: &'b [u8;4],
-    first_freelist_trunk_page: &'b [u8;4],
-    total_number_of_freelist_pages: &'b [u8;4],
-    schema_cookie: &'b [u8;4],
-    schema_format: &'b [u8;4],
-    default_page_cache_size: &'b [u8;4],
-    largest_root_btree_page: &'b [u8;4],
-    db_text_encoding: &'b [u8;4],
-    user_version: &'b [u8;4],
-    incremental_vacuum_mode: &'b [u8;4],
-    application_id: &'b [u8;4],
-    reserved_space: &'b [u8;20],
-    version_valid_for: &'b [u8;4],
-    sqlite_version_number: &'b [u8;4],
+    file_change_counter: &'b [u8; 4],
+    in_header_database_size: &'b [u8; 4],
+    first_freelist_trunk_page: &'b [u8; 4],
+    total_number_of_freelist_pages: &'b [u8; 4],
+    schema_cookie: &'b [u8; 4],
+    schema_format: &'b [u8; 4],
+    default_page_cache_size: &'b [u8; 4],
+    largest_root_btree_page: &'b [u8; 4],
+    db_text_encoding: &'b [u8; 4],
+    user_version: &'b [u8; 4],
+    incremental_vacuum_mode: &'b [u8; 4],
+    application_id: &'b [u8; 4],
+    reserved_space: &'b [u8; 20],
+    version_valid_for: &'b [u8; 4],
+    sqlite_version_number: &'b [u8; 4],
 }
 
 impl<'b> From<&'b [u8; 100]> for DBHeader<'b> {
@@ -124,34 +170,29 @@ impl<'b> From<&'b [u8; 100]> for DBHeader<'b> {
         }
     }
 }
+
 impl<'b> Display for DBHeader<'b> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "database page size:    {}",u16::from_be_bytes(*self.page_size))?;
-        writeln!(f, "write format:          {}",self.file_format_write_version)?;
-        writeln!(f, "read format:           {}",self.file_format_read_version)?;
-        writeln!(f, "reserved bytes:        {}",self.reserved_space_size)?;
-        writeln!(f, "file change counter:   {}",u32::from_be_bytes(*self.file_change_counter))?;
-        writeln!(f, "database page count:   {}",u32::from_be_bytes(*self.in_header_database_size))?;
-        writeln!(f, "freelist page count:   {}",u32::from_be_bytes(*self.total_number_of_freelist_pages))?;
-        writeln!(f, "schema cookie:         {}",u32::from_be_bytes(*self.schema_cookie))?;
-        writeln!(f, "schema format:         {}",u32::from_be_bytes(*self.schema_format))?;
-        writeln!(f, "default cache size:    {}",u32::from_be_bytes(*self.default_page_cache_size))?;
-        writeln!(f, "autovacuum top root:   {}",u32::from_be_bytes(*self.largest_root_btree_page))?;
-        writeln!(f, "incremental vacuum:    {}",u32::from_be_bytes(*self.incremental_vacuum_mode))?;
-        writeln!(f, "text encoding:         {}",u32::from_be_bytes(*self.db_text_encoding))?;
-        writeln!(f, "user version:          {}",u32::from_be_bytes(*self.user_version))?;
-        writeln!(f, "application id:        {}",u32::from_be_bytes(*self.application_id))?;
-        writeln!(f, "software version:      {}",u32::from_be_bytes(*self.sqlite_version_number))?;
+        writeln!(f, "database page size:    {}", u16::from_be_bytes(*self.page_size))?;
+        writeln!(f, "write format:          {}", self.file_format_write_version)?;
+        writeln!(f, "read format:           {}", self.file_format_read_version)?;
+        writeln!(f, "reserved bytes:        {}", self.reserved_space_size)?;
+        writeln!(f, "file change counter:   {}", u32::from_be_bytes(*self.file_change_counter))?;
+        writeln!(f, "database page count:   {}", u32::from_be_bytes(*self.in_header_database_size))?;
+        writeln!(f, "freelist page count:   {}", u32::from_be_bytes(*self.total_number_of_freelist_pages))?;
+        writeln!(f, "schema cookie:         {}", u32::from_be_bytes(*self.schema_cookie))?;
+        writeln!(f, "schema format:         {}", u32::from_be_bytes(*self.schema_format))?;
+        writeln!(f, "default cache size:    {}", u32::from_be_bytes(*self.default_page_cache_size))?;
+        writeln!(f, "autovacuum top root:   {}", u32::from_be_bytes(*self.largest_root_btree_page))?;
+        writeln!(f, "incremental vacuum:    {}", u32::from_be_bytes(*self.incremental_vacuum_mode))?;
+        writeln!(f, "text encoding:         {}", u32::from_be_bytes(*self.db_text_encoding))?;
+        writeln!(f, "user version:          {}", u32::from_be_bytes(*self.user_version))?;
+        writeln!(f, "application id:        {}", u32::from_be_bytes(*self.application_id))?;
+        writeln!(f, "software version:      {}", u32::from_be_bytes(*self.sqlite_version_number))?;
         Ok(())
     }
 }
 
-enum BTreePageType {
-    InteriorIndexBTreePage,
-    InteriorTableBTreePage,
-    LeafIndexBTreePage,
-    LeafTableBTreePage,
-}
 
 // struct BTreePageHeader {
 //     page_type: BTreePageType,
