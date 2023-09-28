@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.71"
 clap = "4.3.2"
+binrw = "0"
 
 [features]
 clap = ["clap/derive"]
